@@ -31,41 +31,44 @@ let STOCK_DATA = [];
 async function fetchStock(symbol) {
   try {
     const quote = await yahooFinance.quote(symbol);
+
     return {
       symbol,
-      ltp: quote.regularMarketPrice,
-      change: quote.regularMarketChange,
-      percentChange: quote.regularMarketChangePercent,
-      open: quote.regularMarketOpen,
-      high: quote.regularMarketDayHigh,
-      low: quote.regularMarketDayLow,
-      prevClose: quote.regularMarketPreviousClose,
-      volume: quote.regularMarketVolume,
-      marketCap: quote.marketCap
+      ltp: quote?.regularMarketPrice ?? 0,
+      change: quote?.regularMarketChange ?? 0,
+      percentChange: quote?.regularMarketChangePercent ?? 0,
+      open: quote?.regularMarketOpen ?? 0,
+      high: quote?.regularMarketDayHigh ?? 0,
+      low: quote?.regularMarketDayLow ?? 0,
+      prevClose: quote?.regularMarketPreviousClose ?? 0,
+      volume: quote?.regularMarketVolume ?? 0,
+      marketCap: quote?.marketCap ?? 0
     };
   } catch (err) {
     console.error(`Error fetching ${symbol}:`, err.message);
-    return { symbol, error: "Failed to fetch" };
+    return { symbol, ltp: 0, change: 0, percentChange: 0 };
   }
 }
 
 async function updateAllStocks() {
   const newData = await Promise.all(STOCK_LIST.map(fetchStock));
+  STOCK_DATA = newData; // overwrite with latest
 
-  if (JSON.stringify(newData) !== JSON.stringify(STOCK_DATA)) {
-    STOCK_DATA = newData;
-    io.emit("stocks-update", STOCK_DATA);
-    console.log("Stock data updated and pushed at", new Date().toLocaleTimeString());
-  }
+  io.emit("stocks-update", STOCK_DATA);
+  console.log("Stock data updated at", new Date().toLocaleTimeString());
 }
 
-cron.schedule("*/7 * * * * *", updateAllStocks);
+cron.schedule("*/10 * * * * *", updateAllStocks);
 
 updateAllStocks();
 
 io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
   socket.emit("stocks-update", STOCK_DATA);
-  socket.on("disconnect", () => console.log("Client disconnected:", socket.id));
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
 });
 
 server.listen(PORT, () => {
