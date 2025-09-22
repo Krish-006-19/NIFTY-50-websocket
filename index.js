@@ -65,7 +65,7 @@ async function updateAllStocks() {
 }
 
 // 🔹 Cron job every 30s (or adjust)
-cron.schedule("*/30 * * * * *", updateAllStocks);
+cron.schedule("*/10 * * * * *", updateAllStocks);
 
 // Initial load
 updateAllStocks();
