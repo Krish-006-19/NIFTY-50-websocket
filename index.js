@@ -59,7 +59,7 @@ async function updateAllStocks() {
   }
 }
 
-cron.schedule("*/05 * * * * *", updateAllStocks);
+cron.schedule("*/7 * * * * *", updateAllStocks);
 
 updateAllStocks();
 
