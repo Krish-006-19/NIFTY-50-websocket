@@ -58,7 +58,7 @@ async function updateAllStocks() {
   console.log("Stock data updated at", new Date().toLocaleTimeString());
 }
 
-cron.schedule("*/9 * * * * *", updateAllStocks);
+cron.schedule("*/10 * * * * *", updateAllStocks);
 
 updateAllStocks();
 
