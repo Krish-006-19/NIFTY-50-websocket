@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-// 🔹 Full Nifty 50 list
 const STOCK_LIST = [
   "RELIANCE.NS", "INFY.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS",
   "KOTAKBANK.NS", "SBIN.NS", "AXISBANK.NS", "HINDUNILVR.NS", "ITC.NS",
@@ -27,10 +26,8 @@ const STOCK_LIST = [
   "ADANIGREEN.NS", "HAVELLS.NS", "TATACONSUM.NS"
 ];
 
-// 🔹 In-memory store
 let STOCK_DATA = [];
 
-// 🔹 Fetch stock data
 async function fetchStock(symbol) {
   try {
     const quote = await yahooFinance.quote(symbol);
@@ -52,31 +49,22 @@ async function fetchStock(symbol) {
   }
 }
 
-// 🔹 Update all stocks & push to clients
 async function updateAllStocks() {
   const newData = await Promise.all(STOCK_LIST.map(fetchStock));
 
-  // Only emit if changed
   if (JSON.stringify(newData) !== JSON.stringify(STOCK_DATA)) {
     STOCK_DATA = newData;
     io.emit("stocks-update", STOCK_DATA);
-    console.log("✅ Stock data updated and pushed at", new Date().toLocaleTimeString());
+    console.log("Stock data updated and pushed at", new Date().toLocaleTimeString());
   }
 }
 
-// 🔹 Cron job every 30s (or adjust)
-cron.schedule("*/10 * * * * *", updateAllStocks);
+cron.schedule("*/05 * * * * *", updateAllStocks);
 
-// Initial load
 updateAllStocks();
 
-// 🔹 WebSocket connections
 io.on("connection", (socket) => {
-  console.log("⚡ Client connected:", socket.id);
-
-  // Send latest data immediately
   socket.emit("stocks-update", STOCK_DATA);
-
   socket.on("disconnect", () => console.log("Client disconnected:", socket.id));
 });
 
